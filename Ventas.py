@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import ttk
 import ttkbootstrap as tb
 
 class Ventana(tb.Window):
@@ -9,14 +10,15 @@ class Ventana(tb.Window):
 		self.lblframe_login=LabelFrame(self.frame_login,text="Acceso")
 		self.lblframe_login.pack(padx=10,pady=10)
 
-		lbltitulo=Label(self.lblframe_login,text="Inicio de sesion")
-		lbltitulo.pack()
+		lbltitulo=ttk.Label(self.lblframe_login,text="Inicio de sesion", font=('Arial',18))
+		lbltitulo.pack(padx=10,pady=35)
 
-		txt_usuario=Entry(self.lblframe_login)
+		txt_usuario=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
 		txt_usuario.pack(padx=10,pady=10)
-		txt_clave=Entry(self.lblframe_login)
+		txt_clave=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
 		txt_clave.pack(padx=10,pady=10)
-		txt_acceso=Button(self.lblframe_login,text="Ingresar")
+		txt_clave.configure(show='*')
+		txt_acceso=ttk.Button(self.lblframe_login,text="Ingresar",width=34)
 		txt_acceso.pack(padx=10,pady=10)
 
 	def __init__(self):
