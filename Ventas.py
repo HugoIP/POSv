@@ -1,6 +1,8 @@
 from tkinter import *
+from tkinter import messagebox
 from tkinter import ttk
 import ttkbootstrap as tb
+import sqlite3
 
 class Ventana(tb.Window):
 	def __init__(self):
@@ -16,11 +18,11 @@ class Ventana(tb.Window):
 		lbltitulo=ttk.Label(self.lblframe_login,text="Inicio de sesion", font=('Arial',18))
 		lbltitulo.pack(padx=10,pady=35)
 
-		txt_usuario=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
-		txt_usuario.pack(padx=10,pady=10)
-		txt_clave=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
-		txt_clave.pack(padx=10,pady=10)
-		txt_clave.configure(show='*')
+		self.txt_usuario=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
+		self.txt_usuario.pack(padx=10,pady=10)
+		self.txt_clave=ttk.Entry(self.lblframe_login,width=40,justify=CENTER)
+		self.txt_clave.pack(padx=10,pady=10)
+		self.txt_clave.configure(show='*')
 		txt_acceso=ttk.Button(self.lblframe_login,text="Ingresar",width=38,command=self.logueo)#"call function logueo"
 		txt_acceso.pack(padx=10,pady=10)
 
@@ -55,8 +57,40 @@ class Ventana(tb.Window):
 		lbl3.grid(row=0,column=0,padx=10,pady=10)
 
 	def logueo(self):
-		self.frame_login.pack_forget()
-		self.ventana_menu()
+		#Capturando error
+		try:
+			#establecer la coneccion
+			miConexion=sqlite3.connect('RecibosComision.db')
+			#creamos el cursor
+			miCursor=miConexion.cursor()
+			nombre_usuario=self.txt_usuario.get()
+			clave_usuario=self.txt_clave.get()
+
+			#Consultamos
+			miCursor.execute("SELECT * FROM Usuarios WHERE nombre=? AND clave=?",(nombre_usuario,clave_usuario))
+			#Traemos todos registros
+			datos_logueo=miCursor.fetchall()
+			if datos_logueo!="":
+				for row in datos_logueo:
+					cod_usu=row[0]
+					nom_usu=row[1]
+					cla_usu=row[2]
+					rol_usu=row[3]
+				#Condicion de logueo
+				if(nom_usu==self.txt_usuario.get() and cla_usu==self.txt_clave.get()):
+					self.frame_login.pack_forget()
+					self.ventana_menu()
+
+			#aplicamos cambios
+			miConexion.commit()
+			#cerramo conexion
+			miConexion.close()
+
+		except:
+			#mensaje de error
+			messagebox.showerror("Acceso","Usuaro o clave incorrectos")
+
+		
 
 	def ventana_lista_usuarios(self):
 		self.frame_lista_usuarios=Frame(self.frame_center)
@@ -77,30 +111,56 @@ class Ventana(tb.Window):
 		txt_busqueda_usuarios=ttk.Entry(self.lblframe_busqueda_listausu,width=50)
 		txt_busqueda_usuarios.grid(row=0,column=0,padx=5,pady=5)
 
-
+		#=======TreeView================
 		self.lblframe_tree_listausu=LabelFrame(self.frame_lista_usuarios)
 		self.lblframe_tree_listausu.grid(row=2,column=0,sticky=NSEW)
 
 		columnas=("codigo","nombre","clave","rol")
 
-		tree_lista_usuarios=ttk.Treeview(self.lblframe_tree_listausu,columns=columnas,height=17,show="headings")
-		tree_lista_usuarios.grid(row=0,column=0)
-		tree_lista_usuarios.heading("codigo",text="Codigo",anchor=W)
-		tree_lista_usuarios.heading("nombre",text="Nombre",anchor=W)
-		tree_lista_usuarios.heading("clave",text="Clave",anchor=W)
-		tree_lista_usuarios.heading("rol",text="Rol",anchor=W)
-		tree_lista_usuarios["displaycolumns"]=("codigo","nombre","rol")#para ocultar la clave
+		self.tree_lista_usuarios=tb.Treeview(self.lblframe_tree_listausu,columns=columnas,height=17,show="headings")
+		self.tree_lista_usuarios.grid(row=0,column=0)
+		self.tree_lista_usuarios.heading("codigo",text="Codigo",anchor=W)
+		self.tree_lista_usuarios.heading("nombre",text="Nombre",anchor=W)
+		self.tree_lista_usuarios.heading("clave",text="Clave",anchor=W)
+		self.tree_lista_usuarios.heading("rol",text="Rol",anchor=W)
+		self.tree_lista_usuarios["displaycolumns"]=("codigo","nombre","rol")#para ocultar la clave
 
 		#Scrollbar
 		tree_scroll_listausu=Scrollbar(self.frame_lista_usuarios)
 		tree_scroll_listausu.grid(row=2,column=1)
 		#Config Scrollbar
-		tree_scroll_listausu.config(command=tree_lista_usuarios.yview)
+		tree_scroll_listausu.config(command=self.tree_lista_usuarios.yview)
+		#llamar funcion mostrar usuarios
+		self.mostrar_usuarios()
 
+	def mostrar_usuarios(self):
+		#Capturando error
+		try:
+			#establecer la coneccion
+			miConexion=sqlite3.connect('RecibosComision.db')
+			#creamos el cursor
+			miCursor=miConexion.cursor()
+			#limpiamos el treeview
+			registros=self.tree_lista_usuarios.get_children()
+			#recorremos
+			for elementos in registros:
+				self.tree_lista_usuarios.delete(elementos)
 
+			#Consultamos
+			miCursor.execute("SELECT * FROM Usuarios")
+			#Traemos todos registros
+			datos=miCursor.fetchall()
+			#recorremos cada fila
+			for row in datos:
+				self.tree_lista_usuarios.insert("",0,text=row[0],values=(row[0],row[1],row[2],row[3]))
+			#aplicamos cambios
+			miConexion.commit()
+			#cerramo conexion
+			miConexion.close()
 
-
-
+		except:
+			#mensaje de error
+			messagebox.showerror("lista de usuarios","ocurrio un error al mostrar la lista de usuarios")
 	
 
 def main():
