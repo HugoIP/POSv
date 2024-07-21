@@ -1,6 +1,7 @@
 from tkinter import *
+import ttkbootstrap as tb
 
-class Ventana(Tk):
+class Ventana(tb.Window):
 	def ventana_login(self):
 		self.frame_login=Frame(self)
 		self.frame_login.pack()
@@ -28,6 +29,7 @@ def main():
 	app=Ventana()
 	app.title("vNova Internet")
 	app.state("zoomed")
+	tb.Style("superhero")
 	app.mainloop()
 
 if __name__=='__main__':
